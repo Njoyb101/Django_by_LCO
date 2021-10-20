@@ -8,7 +8,7 @@ Circuit simulation programs are very efficient and fast way of observing behavio
 There are some challenges in circuit sketch recognition such as segmentation of components, recognition of components and getting interconnections between them. Some earlier researches are available to solve these problems [1][2][3]. A system uses block adjacency graph (BAG) to segment components, then it identifies components using a contour based classification [1]. Another system extracts potential connection lines and potential components using some assumptions about lines and components [2]. A project describes a system that makes an analysis to obtain branches and end points of components, then it uses Fourier descriptor of component region to make SVM classification [3].
 This project proposes a way to segment components and connection wires using combination of end point analysis and line detection, then it describes component region using HOG features. It recognizes components using SVM classification. An overview of our project shown Figure 1.
 
-  <p align="center"><img src="images/figure1.jpg"/></p>
+  <p align="center"><img src="figure1.jpg"/></p>
   <p align="center"><b>Figure 1:</b> Block diagram of project</p>
 
 
@@ -31,27 +31,27 @@ These assumptions make easier to segment symbols and connection wires.
 
 Circuit recognition task consist of segmentation of component symbols, recognition of symbols and creating output netlist file steps. We preprocessed input circuit sketch to obtain binary image which is more suitable format to apply segmentation process. We converted color (RGB) input image to grayscale image, and then we applied a Gaussian filter to smooth image. Binary image was obtained using adaptive thresholding. In this way, we reduced effects of illumination changes on input image. Then we applied thinning operation to obtain skeleton of circuit sketch. Skeleton image can provide to detect end points which indicates an open line stand there. Figure 2 shows results of binarization and thinning processes.  
 
- <p align="center"><img src="images/2.jpg"/></p>
+ <p align="center"><img src="2.jpg"/></p>
  
 Skeleton image has one pixel line thickness. 
 If we count number of foreground neighbors of each foreground pixel, 
 we can find end points which has only one foreground neighbor pixel [3]. Figure 2.d shows end points of input image. End points lead us to segment capacitor, voltage source and ground symbols due to open lines they contain. We don’t need a trained recognizer for these components because we know that capacitor, voltage source, ground components differ from each other in the two cases, length ratio of lines, number of line they have. We can identify them using these properties. Capacitor has two lines with length ratio about 1, and voltage source has two lines with length ratio about 0.5. Ground has different number of lines than other components. Figure 3.a shows segmented voltage source, capacitor and ground components by using these properties.
 
- <p align="center"><img src="images/3.jpg"/></p>
+ <p align="center"><img src="3.jpg"/></p>
 
 Assumption (1) states that connection lines are horizontal and vertical lines. We detected these lines using line segment detector algorithm [4]. Then, we removed detected connection lines  and segmented components from adaptive thresholding image shown Figure 2.b. Above Figure 3.c shows result of removing operation. Morphological closing operation was applied to make image suitable for contour detection algorithm [5]. It returns separated foreground regions. We ignored small regions with thresholding contours by region area because they are probably remaining part of connection lines or noise due to illumination differences. Remaining regions are potential circuit components that can be identified by recognition process.
 
 Figure 4.a shows general procedure of circuit sketch recognition. We obtained some of circuit components using end point analysis. However, we need to classify remaining component regions. To achieve this, we trained SVM classifier that can classify a given input into one of resistor, diode or inductor components. We created a dataset that contains a hundred image of each component. 80% of dataset was separated for training and remaining of dataset for test purposes. HOG features was used to obtain feature vector of each training sample. HOG algorithm uses gradient magnitude and direction of each pixel to create feature vector that describes a region of image. It’s rotation and scale invariant feature description algorithm. It’s popular to use HOG features with SVM classification [6]. HOG feature vector and label of each training sample was used to train SVM. SVM is a popular classification algorithm. It interprets feature vectors as a point in a high dimensional space. Points belong to same component stand together at high dimensional space so SVM algorithm tries to fit a hyperplane that separates one component label from others. Figure 4.b shows the result of SVM classification.
 
- <p align="center"><img src="images/4.jpg"/></p>
+ <p align="center"><img src="4.jpg"/></p>
 
 We identified all components present in input image. After that, we tried to identify nodes of the input circuit. We removed all component regions from binary image because this made each node separate from each other. We applied contour finding algorithm to find each node as a region on image. Then, we drew each region to a new empty image, and found end points of each node using similar process as mentioned before. End points of each node matched component bounding boxes so we got which component connected which nodes of circuit.  Figure 5 shows steps of node identification process.  
 
- <p align="center"><img src="images/5.jpg"/></p>
+ <p align="center"><img src="5.jpg"/></p>
 
 We chose LTspice as our output simulation program so we need to create an output file compatible with LTspice .asc schematic file. A list that indicates which component connected which nodes of circuit is not enough to get schematic file of circuit. We should have coordinates of all lines present in circuit, and resize all components to make them suitable for LTspice predefined component size. We develop a method to get line segment present in circuit. Line segment detector [4] was used to find lines of each node. Then, we assigned a line as a reference line for each node, and determine remaining lines according to this reference line because there may be multiple component connected to a node of circuit or single line from component to node is not enough to describe actual connection. We also updated all components node coordinates to make them suitable for LTspice. Figure 6.a shows reference lines as yellow lines and remaining lines as blue lines which indicates connection from component to node.
 
- <p align="center"><img src="images/6.jpg"/></p>
+ <p align="center"><img src="6.jpg"/></p>
  
  ## Results
  
@@ -61,11 +61,11 @@ We limited our attention to six component in this project due to data requiremen
 
 Segmentation and classification are main challenges of this project. There may be errors due to segmentation problems and wrong recognition of component symbols. Because of that, a stable solution for project needs user interaction. If there is wrong classified component,we should provide a manual way to fix problem for user. If there is missing component, user can have a chance to select missing component for classification.
 
- <p align="center"><img src="images/7.jpg"/></p>
+ <p align="center"><img src="7.jpg"/></p>
 
 There are two parameters to measure prediction performance of classification process. They are precision and recall. These parameters was calculated using test set which is equal to 20% of total dataset. Each test sample was rotated 90 degree three times to obtain different rotations of component so we have 80 test sample of each component label. The result of performance measurements for each component is given below.
 
- <p align="center"><img src="images/8.jpg"/></p>
+ <p align="center"><img src="8.jpg"/></p>
 
 ## Conclusion
 
